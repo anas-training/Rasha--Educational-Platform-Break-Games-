@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mystery Detective Matching - Level 4</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated background elements */
+        .mystery-bg {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            opacity: 0.1;
+        }
+
+        .magnifying-glass {
+            position: absolute;
+            font-size: 100px;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(100px, -50px) rotate(10deg); }
+            50% { transform: translate(-50px, 50px) rotate(-10deg); }
+            75% { transform: translate(50px, 100px) rotate(5deg); }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 36px;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .detective-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+
+        /* Game Mode Selection */
+        .mode-selection {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .mode-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mode-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: left 0.5s;
+        }
+
+        .mode-btn:hover::before {
+            left: 100%;
+        }
+
+        .mode-btn.math {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .mode-btn.vocabulary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .mode-btn.science {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .mode-btn.history {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .mode-btn.mystery {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .mode-btn.active {
+            transform: scale(1.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Game Stats */
+        .game-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .timer {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+            animation: timerPulse 1s infinite;
+        }
+
+        @keyframes timerPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        /* Mystery Clue Section */
+        .mystery-clue {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            letter-spacing: 3px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .clue-letter {
+            display: inline-block;
+            margin: 0 5px;
+            padding: 5px 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            animation: revealLetter 0.5s;
+        }
+
+        @keyframes revealLetter {
+            from {
+                transform: rotateY(90deg);
+                opacity: 0;
+            }
+            to {
+                transform: rotateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Game Board */
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            cursor: pointer;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .card:hover:not(.flipped):not(.matched) {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card.matched {
+            animation: matchFound 0.6s;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        @keyframes matchFound {
+            0% { transform: scale(1) rotateY(180deg); }
+            50% { transform: scale(1.2) rotateY(180deg); background: #2ecc71; }
+            100% { transform: scale(1) rotateY(180deg); }
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .card-front {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 60px;
+        }
+
+        .card-back {
+            background: white;
+            color: #2c3e50;
+            transform: rotateY(180deg);
+            font-weight: bold;
+            font-size: 16px;
+            border: 3px solid #667eea;
+            word-wrap: break-word;
+            padding: 8px;
+        }
+
+        .card-back.math {
+            background: linear-gradient(135deg, #fff5e6 0%, #ffe0cc 100%);
+            border-color: #f39c12;
+            color: #d35400;
+        }
+
+        .card-back.vocabulary {
+            background: linear-gradient(135deg, #ffe6f9 0%, #ffccf2 100%);
+            border-color: #e91e63;
+            color: #c2185b;
+        }
+
+        .card-back.science {
+            background: linear-gradient(135deg, #e6f3ff 0%, #cce6ff 100%);
+            border-color: #2196f3;
+            color: #1565c0;
+        }
+
+        .card-back.history {
+            background: linear-gradient(135deg, #e6ffe6 0%, #ccffcc 100%);
+            border-color: #4caf50;
+            color: #2e7d32;
+        }
+
+        .card-back.mystery {
+            background: linear-gradient(135deg, #fff0f5 0%, #ffe0ec 100%);
+            border-color: #9c27b0;
+            color: #6a1b9a;
+        }
+
+        /* Special Effects */
+        .sparkle {
+            position: fixed;
+            pointer-events: none;
+            animation: sparkle 1s linear;
+            font-size: 30px;
+        }
+
+        @keyframes sparkle {
+            0% {
+                transform: translateY(0) scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) scale(1);
+                opacity: 0;
+            }
+        }
+
+        /* Messages */
+        .message {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+            min-height: 40px;
+        }
+
+        .message.correct {
+            color: #27ae60;
+            animation: bounce 0.5s;
+        }
+
+        .message.wrong {
+            color: #e74c3c;
+            animation: shake 0.5s;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        /* Win Screen */
+        .win-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .win-modal {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            animation: zoomIn 0.5s;
+            max-width: 500px;
+        }
+
+        @keyframes zoomIn {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .win-title {
+            font-size: 48px;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .mystery-solved {
+            font-size: 28px;
+            color: #e67e22;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .final-stats {
+            font-size: 18px;
+            color: #7f8c8d;
+            margin: 20px 0;
+        }
+
+        .play-again-btn {
+            padding: 15px 40px;
+            font-size: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .play-again-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Difficulty Badge */
+        .difficulty-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 12px;
+            animation: pulse 2s infinite;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .game-board {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .game-board {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="mystery-bg">
+        <div class="magnifying-glass">🔍</div>
+    </div>
+
+    <div class="container">
+        <div class="difficulty-badge">GRADE 3</div>
+        <h1>🕵️ Mystery Detective Matching 🕵️
+            <span class="detective-badge">Grade 3 Challenge</span>
+        </h1>
+
+        <div class="mode-selection">
+            <button class="mode-btn math" onclick="startGame('math')">Math Equations</button>
+            <button class="mode-btn vocabulary" onclick="startGame('vocabulary')">Word Definitions</button>
+            <button class="mode-btn science" onclick="startGame('science')">Science Facts</button>
+            <button class="mode-btn history" onclick="startGame('history')">History Dates</button>
+            <button class="mode-btn mystery" onclick="startGame('mystery')">🔮 Mystery Mix</button>
+        </div>
+
+        <div class="game-stats">
+            <div class="stat-box">🎯 Matches: <span id="matches">0</span>/12</div>
+            <div class="stat-box timer">⏱️ Time: <span id="timer">0</span>s</div>
+            <div class="stat-box">💡 Attempts: <span id="attempts">0</span></div>
+            <div class="stat-box">⭐ Score: <span id="score">0</span></div>
+        </div>
+
+        <div class="mystery-clue" id="mysteryClue">
+            🔐 Solve all matches to reveal the mystery word! 🔐
+        </div>
+
+        <div class="game-board" id="gameBoard"></div>
+
+        <div class="message" id="message"></div>
+
+        <div class="win-overlay hidden" id="winOverlay">
+            <div class="win-modal">
+                <div class="win-title">🎉 Mystery Solved! 🎉</div>
+                <div class="mystery-solved" id="mysterySolved"></div>
+                <div class="final-stats" id="finalStats"></div>
+                <button class="play-again-btn" onclick="resetGame()">New Mystery</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game data for different modes - Grade 3 Level - Matching Identical Pairs
+        const gameData = {
+            math: [
+                "7 × 6", "8 × 5", "9 × 4", "6 × 7", "5 × 9", "8 × 3",
+                "42 ÷ 6", "36 ÷ 4", "25 + 17", "63 - 28", "Double 24", "Half of 50"
+            ],
+            vocabulary: [
+                "ENORMOUS", "QUICKLY", "BRAVE", "ANCIENT", "GENTLE", "BRIGHT",
+                "SMOOTH", "NARROW", "FROZEN", "CHEERFUL", "ANGRY", "TINY"
+            ],
+            science: [
+                "SOLID", "LIQUID", "GAS", "FREEZING", "MELTING", "EVAPORATE",
+                "MAGNET", "GRAVITY", "RAINBOW", "SEASONS", "PLANETS", "ENERGY"
+            ],
+            history: [
+                "WASHINGTON", "LINCOLN", "COLUMBUS", "JULY 4TH", "NOVEMBER", "PILGRIMS",
+                "COLONIES", "FLAG", "LIBERTY", "FREEDOM", "AMERICA", "PRESIDENT"
+            ],
+            mystery: []
+        };
+
+        // Mystery words to reveal - Grade 3 friendly
+        const mysteryWords = [
+            "AWESOME", "SUPERSTAR", "BRILLIANT", "CHAMPION", "FANTASTIC",
+            "EXCELLENT", "AMAZING", "WONDERFUL", "WINNER", "SMARTY"
+        ];
+
+        let currentMode = '';
+        let cards = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let attempts = 0;
+        let score = 0;
+        let timer = 0;
+        let timerInterval;
+        let canFlip = true;
+        let mysteryWord = '';
+        let revealedLetters = [];
+
+        function initMysteryMode() {
+            // Mix different types for mystery mode
+            gameData.mystery = [
+                ...gameData.math.slice(0, 3),
+                ...gameData.vocabulary.slice(0, 3),
+                ...gameData.science.slice(0, 3),
+                ...gameData.history.slice(0, 3)
+            ];
+        }
+
+        function startGame(mode) {
+            currentMode = mode;
+            
+            // Update active button
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`.mode-btn.${mode}`).classList.add('active');
+
+            // Initialize mystery mode if selected
+            if (mode === 'mystery') {
+                initMysteryMode();
+            }
+
+            // Reset game state
+            cards = [];
+            flippedCards = [];
+            matchedPairs = 0;
+            attempts = 0;
+            score = 1000; // Start with max score
+            timer = 0;
+            revealedLetters = [];
+            
+            // Select mystery word
+            mysteryWord = mysteryWords[Math.floor(Math.random() * mysteryWords.length)];
+            updateMysteryClue();
+            
+            // Clear timer if exists
+            if (timerInterval) clearInterval(timerInterval);
+            
+            // Start timer
+            timerInterval = setInterval(() => {
+                timer++;
+                document.getElementById('timer').textContent = timer;
+                if (timer % 15 === 0 && score > 0) {
+                    score -= 5; // Lose points more slowly for Grade 3
+                    updateScore();
+                }
+            }, 1000);
+
+            // Create card pairs - matching identical items
+            const selectedData = gameData[mode];
+            selectedData.forEach((item, index) => {
+                // Create two identical cards for each item
+                cards.push({id: index * 2, content: item, pairId: index});
+                cards.push({id: index * 2 + 1, content: item, pairId: index});
+            });
+
+            // Shuffle cards
+            cards = cards.sort(() => Math.random() - 0.5);
+
+            // Create board
+            createBoard();
+            updateStats();
+        }
+
+        function createBoard() {
+            const board = document.getElementById('gameBoard');
+            board.innerHTML = '';
+
+            cards.forEach((card, index) => {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'card';
+                cardElement.dataset.index = index;
+                cardElement.onclick = () => flipCard(index);
+
+                const cardFront = document.createElement('div');
+                cardFront.className = 'card-face card-front';
+                cardFront.innerHTML = '🔍';
+
+                const cardBack = document.createElement('div');
+                cardBack.className = `card-face card-back ${currentMode}`;
+                cardBack.textContent = card.content;
+
+                cardElement.appendChild(cardFront);
+                cardElement.appendChild(cardBack);
+                board.appendChild(cardElement);
+            });
+        }
+
+        function flipCard(index) {
+            if (!canFlip || flippedCards.length >= 2) return;
+            
+            const card = cards[index];
+            const cardElement = document.querySelector(`.card[data-index="${index}"]`);
+            
+            if (cardElement.classList.contains('flipped') || 
+                cardElement.classList.contains('matched')) return;
+
+            // Flip the card
+            cardElement.classList.add('flipped');
+            flippedCards.push({index, card, element: cardElement});
+
+            // Check for match when 2 cards are flipped
+            if (flippedCards.length === 2) {
+                canFlip = false;
+                attempts++;
+                updateStats();
+                checkMatch();
+            }
+        }
+
+        function checkMatch() {
+            const [first, second] = flippedCards;
+            
+            // Check if the cards have identical content
+            if (first.card.content === second.card.content && 
+                first.card.id !== second.card.id) {
+                // Match found!
+                setTimeout(() => {
+                    first.element.classList.add('matched');
+                    second.element.classList.add('matched');
+                    matchedPairs++;
+                    score += 50; // Bonus for match
+                    
+                    // Create sparkle effect
+                    createSparkle(first.element);
+                    createSparkle(second.element);
+                    
+                    showMessage('Great Match! 🎉', 'correct');
+                    
+                    // Reveal mystery letter
+                    if (matchedPairs <= mysteryWord.length) {
+                        revealedLetters.push(matchedPairs - 1);
+                        updateMysteryClue();
+                    }
+                    
+                    updateStats();
+                    
+                    if (matchedPairs === 12) {
+                        endGame();
+                    }
+                    
+                    flippedCards = [];
+                    canFlip = true;
+                }, 1000);
+            } else {
+                // No match
+                score = Math.max(0, score - 10); // Smaller penalty for Grade 3
+                showMessage('Try Again! 🤔', 'wrong');
+                
+                setTimeout(() => {
+                    first.element.classList.remove('flipped');
+                    second.element.classList.remove('flipped');
+                    flippedCards = [];
+                    canFlip = true;
+                    updateStats();
+                }, 1500);
+            }
+        }
+
+        function createSparkle(element) {
+            const sparkle = document.createElement('div');
+            sparkle.className = 'sparkle';
+            sparkle.textContent = '✨';
+            sparkle.style.left = element.offsetLeft + element.offsetWidth / 2 + 'px';
+            sparkle.style.top = element.offsetTop + element.offsetHeight / 2 + 'px';
+            document.body.appendChild(sparkle);
+            
+            setTimeout(() => sparkle.remove(), 1000);
+        }
+
+        function updateMysteryClue() {
+            const clueDiv = document.getElementById('mysteryClue');
+            let clueHTML = '';
+            
+            for (let i = 0; i < mysteryWord.length; i++) {
+                if (revealedLetters.includes(i)) {
+                    clueHTML += `<span class="clue-letter">${mysteryWord[i]}</span>`;
+                } else {
+                    clueHTML += `<span class="clue-letter">?</span>`;
+                }
+            }
+            
+            clueDiv.innerHTML = clueHTML;
+        }
+
+        function showMessage(msg, type) {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = msg;
+            messageEl.className = `message ${type}`;
+            
+            setTimeout(() => {
+                messageEl.textContent = '';
+                messageEl.className = 'message';
+            }, 2000);
+        }
+
+        function updateStats() {
+            document.getElementById('matches').textContent = matchedPairs;
+            document.getElementById('attempts').textContent = attempts;
+            updateScore();
+        }
+
+        function updateScore() {
+            document.getElementById('score').textContent = score;
+        }
+
+        function endGame() {
+            clearInterval(timerInterval);
+            
+            // Calculate bonus
+            let timeBonus = Math.max(0, 500 - timer * 5);
+            let accuracyBonus = Math.max(0, 300 - attempts * 10);
+            let finalScore = score + timeBonus + accuracyBonus;
+            
+            // Show win screen
+            setTimeout(() => {
+                document.getElementById('mysterySolved').textContent = 
+                    `Mystery Word: ${mysteryWord}`;
+                document.getElementById('finalStats').innerHTML = `
+                    <p>⏱️ Time: ${timer} seconds</p>
+                    <p>💡 Attempts: ${attempts}</p>
+                    <p>🎯 Accuracy: ${Math.round((12/attempts) * 100)}%</p>
+                    <p>⭐ Final Score: ${finalScore}</p>
+                    <p>🏆 Rank: ${getRank(finalScore)}</p>
+                `;
+                document.getElementById('winOverlay').classList.remove('hidden');
+            }, 1000);
+        }
+
+        function getRank(score) {
+            if (score >= 1300) return "🏆 Super Detective!";
+            if (score >= 1000) return "🥇 Great Detective!";
+            if (score >= 700) return "🥈 Good Detective!";
+            if (score >= 400) return "🥉 Detective!";
+            return "⭐ Detective in Training!";
+        }
+
+        function resetGame() {
+            document.getElementById('winOverlay').classList.add('hidden');
+            document.getElementById('gameBoard').innerHTML = '';
+            document.getElementById('message').textContent = '';
+            if (currentMode) {
+                startGame(currentMode);
+            }
+        }
+
+        // Start with math mode by default
+        window.onload = () => {
+            startGame('math');
+        };
+    </script>
+</body>
+</html>

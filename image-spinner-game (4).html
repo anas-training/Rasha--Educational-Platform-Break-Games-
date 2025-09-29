@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classroom Image Spinner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Arial', sans-serif;
+        }
+
+        .container {
+            text-align: center;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 900px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 500px;
+            height: 500px;
+            margin: 0 auto 30px;
+        }
+
+        .wheel {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            border-radius: 50%;
+            overflow: hidden;
+            background: conic-gradient(
+                from 0deg,
+                #FF6B6B 0deg 45deg,
+                #4ECDC4 45deg 90deg,
+                #45B7D1 90deg 135deg,
+                #96CEB4 135deg 180deg,
+                #FFEAA7 180deg 225deg,
+                #DDA0DD 225deg 270deg,
+                #98D8C8 270deg 315deg,
+                #FFB6C1 315deg 360deg
+            );
+            border: 8px solid #333;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+        }
+
+        /* Create dividing lines between segments */
+        .wheel::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(90deg, transparent calc(50% - 2px), #333 calc(50% - 2px), #333 calc(50% + 2px), transparent calc(50% + 2px)),
+                linear-gradient(0deg, transparent calc(50% - 2px), #333 calc(50% - 2px), #333 calc(50% + 2px), transparent calc(50% + 2px)),
+                linear-gradient(45deg, transparent calc(50% - 2px), #333 calc(50% - 2px), #333 calc(50% + 2px), transparent calc(50% + 2px)),
+                linear-gradient(-45deg, transparent calc(50% - 2px), #333 calc(50% - 2px), #333 calc(50% + 2px), transparent calc(50% + 2px));
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .segment-holder {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .image-container {
+            position: absolute;
+            width: 90px;
+            height: 90px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transform-origin: center;
+        }
+
+        /* Position each image in its segment */
+        .image-container:nth-child(1) { 
+            top: 15%;
+            right: 25%;
+            transform: rotate(0deg);
+        }
+        .image-container:nth-child(2) { 
+            top: 25%;
+            right: 15%;
+            transform: rotate(0deg);
+        }
+        .image-container:nth-child(3) { 
+            bottom: 25%;
+            right: 15%;
+            transform: rotate(0deg);
+        }
+        .image-container:nth-child(4) { 
+            bottom: 15%;
+            right: 25%;
+            transform: rotate(0deg);
+        }
+        .image-container:nth-child(5) { 
+            bottom: 15%;
+            left: 25%;
+            transform: rotate(0deg);
+        }
+        .image-container:nth-child(6) { 
+            bottom: 25%;
+            left: 15%;
+            transform: rotate(0deg);
+        }
+        .image-container:nth-child(7) { 
+            top: 25%;
+            left: 15%;
+            transform: rotate(0deg);
+        }
+        .image-container:nth-child(8) { 
+            top: 15%;
+            left: 25%;
+            transform: rotate(0deg);
+        }
+
+        .segment-image {
+            width: 65px;
+            height: 65px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 3px solid white;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+            background: white;
+        }
+
+        .segment-text {
+            margin-top: 5px;
+            font-weight: bold;
+            font-size: 13px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.5);
+            padding: 2px 8px;
+            border-radius: 10px;
+            white-space: nowrap;
+        }
+
+        .pointer {
+            position: absolute;
+            top: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 0 25px 50px 25px;
+            border-color: transparent transparent #FF0000 transparent;
+            z-index: 10;
+            filter: drop-shadow(0 3px 8px rgba(0,0,0,0.4));
+        }
+
+        .pointer::after {
+            content: '';
+            position: absolute;
+            top: 45px;
+            left: -5px;
+            width: 10px;
+            height: 10px;
+            background: #FF0000;
+            border-radius: 50%;
+        }
+
+        .spin-button {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 24px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            margin: 10px;
+            font-weight: bold;
+        }
+
+        .spin-button:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .spin-button:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+
+        .spin-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .upload-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px dashed #ddd;
+        }
+
+        .upload-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .image-upload {
+            background: #f8f8f8;
+            border-radius: 10px;
+            padding: 15px;
+            transition: all 0.3s;
+        }
+
+        .image-upload:hover {
+            background: #e8e8e8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .upload-label {
+            display: block;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input-button {
+            display: block;
+            width: 100%;
+            padding: 8px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-size: 12px;
+        }
+
+        .file-input-button:hover {
+            background: #5568d3;
+        }
+
+        .file-input-button.loaded {
+            background: #4CAF50;
+        }
+
+        .file-input {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .upload-preview {
+            width: 50px;
+            height: 50px;
+            margin: 10px auto 0;
+            border-radius: 5px;
+            object-fit: cover;
+            display: none;
+            border: 2px solid #667eea;
+        }
+
+        .upload-preview.active {
+            display: block;
+        }
+
+        @keyframes celebrate {
+            0% { transform: scale(0) rotate(0deg); opacity: 0; }
+            50% { transform: scale(1.2) rotate(180deg); opacity: 1; }
+            100% { transform: scale(1) rotate(360deg); opacity: 1; }
+        }
+
+        .winner-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 28px;
+            font-weight: bold;
+            color: #FFD700;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+            z-index: 20;
+            display: none;
+            animation: celebrate 0.5s ease-out;
+            pointer-events: none;
+            background: rgba(0,0,0,0.7);
+            padding: 10px 20px;
+            border-radius: 15px;
+        }
+
+        .result-display {
+            display: none;
+            margin-top: 30px;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .result-display.active {
+            display: block;
+        }
+
+        .result-title {
+            color: white;
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .result-image-container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            display: inline-block;
+        }
+
+        .result-image {
+            width: 250px;
+            height: 250px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 4px solid #667eea;
+        }
+
+        .result-label {
+            margin-top: 15px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .new-spin-button {
+            margin-top: 20px;
+            background: white;
+            color: #667eea;
+            border: 3px solid white;
+            padding: 10px 30px;
+            font-size: 18px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .new-spin-button:hover {
+            background: #667eea;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Picture Spinner Game 🎯</h1>
+        
+        <div class="wheel-container">
+            <div class="pointer"></div>
+            <div class="winner-text" id="winnerText"></div>
+            <div class="wheel" id="wheel">
+                <div class="segment-holder">
+                    <div class="image-container">
+                        <img class="segment-image" id="img1" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23FF6B6B'/%3E%3Ctext x='50' y='50' font-size='40' fill='white' text-anchor='middle' dominant-baseline='middle'%3E1%3C/text%3E%3C/svg%3E" alt="Image 1">
+                        <div class="segment-text">Picture 1</div>
+                    </div>
+                    <div class="image-container">
+                        <img class="segment-image" id="img2" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%234ECDC4'/%3E%3Ctext x='50' y='50' font-size='40' fill='white' text-anchor='middle' dominant-baseline='middle'%3E2%3C/text%3E%3C/svg%3E" alt="Image 2">
+                        <div class="segment-text">Picture 2</div>
+                    </div>
+                    <div class="image-container">
+                        <img class="segment-image" id="img3" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%2345B7D1'/%3E%3Ctext x='50' y='50' font-size='40' fill='white' text-anchor='middle' dominant-baseline='middle'%3E3%3C/text%3E%3C/svg%3E" alt="Image 3">
+                        <div class="segment-text">Picture 3</div>
+                    </div>
+                    <div class="image-container">
+                        <img class="segment-image" id="img4" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%2396CEB4'/%3E%3Ctext x='50' y='50' font-size='40' fill='white' text-anchor='middle' dominant-baseline='middle'%3E4%3C/text%3E%3C/svg%3E" alt="Image 4">
+                        <div class="segment-text">Picture 4</div>
+                    </div>
+                    <div class="image-container">
+                        <img class="segment-image" id="img5" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23FFEAA7'/%3E%3Ctext x='50' y='50' font-size='40' fill='gray' text-anchor='middle' dominant-baseline='middle'%3E5%3C/text%3E%3C/svg%3E" alt="Image 5">
+                        <div class="segment-text">Picture 5</div>
+                    </div>
+                    <div class="image-container">
+                        <img class="segment-image" id="img6" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23DDA0DD'/%3E%3Ctext x='50' y='50' font-size='40' fill='white' text-anchor='middle' dominant-baseline='middle'%3E6%3C/text%3E%3C/svg%3E" alt="Image 6">
+                        <div class="segment-text">Picture 6</div>
+                    </div>
+                    <div class="image-container">
+                        <img class="segment-image" id="img7" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%2398D8C8'/%3E%3Ctext x='50' y='50' font-size='40' fill='white' text-anchor='middle' dominant-baseline='middle'%3E7%3C/text%3E%3C/svg%3E" alt="Image 7">
+                        <div class="segment-text">Picture 7</div>
+                    </div>
+                    <div class="image-container">
+                        <img class="segment-image" id="img8" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23FFB6C1'/%3E%3Ctext x='50' y='50' font-size='40' fill='white' text-anchor='middle' dominant-baseline='middle'%3E8%3C/text%3E%3C/svg%3E" alt="Image 8">
+                        <div class="segment-text">Picture 8</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="spin-button" id="spinBtn" onclick="spinWheel()">🎲 SPIN THE WHEEL!</button>
+
+        <div class="result-display" id="resultDisplay">
+            <h2 class="result-title">🌟 Selected Picture 🌟</h2>
+            <div class="result-image-container">
+                <img class="result-image" id="resultImage" src="" alt="Selected Image">
+                <div class="result-label" id="resultLabel">Picture</div>
+            </div>
+            <br>
+            <button class="new-spin-button" onclick="closePictureDisplay()">✨ Spin Again!</button>
+        </div>
+
+        <div class="upload-section">
+            <h3>📸 Upload Your Pictures:</h3>
+            <div class="upload-grid">
+                <div class="image-upload">
+                    <label class="upload-label">Picture 1</label>
+                    <div class="file-input-wrapper">
+                        <button class="file-input-button" id="btn1" onclick="document.getElementById('upload1').click()">Choose Image</button>
+                        <input type="file" id="upload1" class="file-input" accept="image/*" onchange="handleImageUpload(event, 1)">
+                    </div>
+                    <img class="upload-preview" id="preview1" alt="Preview 1">
+                </div>
+                <div class="image-upload">
+                    <label class="upload-label">Picture 2</label>
+                    <div class="file-input-wrapper">
+                        <button class="file-input-button" id="btn2" onclick="document.getElementById('upload2').click()">Choose Image</button>
+                        <input type="file" id="upload2" class="file-input" accept="image/*" onchange="handleImageUpload(event, 2)">
+                    </div>
+                    <img class="upload-preview" id="preview2" alt="Preview 2">
+                </div>
+                <div class="image-upload">
+                    <label class="upload-label">Picture 3</label>
+                    <div class="file-input-wrapper">
+                        <button class="file-input-button" id="btn3" onclick="document.getElementById('upload3').click()">Choose Image</button>
+                        <input type="file" id="upload3" class="file-input" accept="image/*" onchange="handleImageUpload(event, 3)">
+                    </div>
+                    <img class="upload-preview" id="preview3" alt="Preview 3">
+                </div>
+                <div class="image-upload">
+                    <label class="upload-label">Picture 4</label>
+                    <div class="file-input-wrapper">
+                        <button class="file-input-button" id="btn4" onclick="document.getElementById('upload4').click()">Choose Image</button>
+                        <input type="file" id="upload4" class="file-input" accept="image/*" onchange="handleImageUpload(event, 4)">
+                    </div>
+                    <img class="upload-preview" id="preview4" alt="Preview 4">
+                </div>
+                <div class="image-upload">
+                    <label class="upload-label">Picture 5</label>
+                    <div class="file-input-wrapper">
+                        <button class="file-input-button" id="btn5" onclick="document.getElementById('upload5').click()">Choose Image</button>
+                        <input type="file" id="upload5" class="file-input" accept="image/*" onchange="handleImageUpload(event, 5)">
+                    </div>
+                    <img class="upload-preview" id="preview5" alt="Preview 5">
+                </div>
+                <div class="image-upload">
+                    <label class="upload-label">Picture 6</label>
+                    <div class="file-input-wrapper">
+                        <button class="file-input-button" id="btn6" onclick="document.getElementById('upload6').click()">Choose Image</button>
+                        <input type="file" id="upload6" class="file-input" accept="image/*" onchange="handleImageUpload(event, 6)">
+                    </div>
+                    <img class="upload-preview" id="preview6" alt="Preview 6">
+                </div>
+                <div class="image-upload">
+                    <label class="upload-label">Picture 7</label>
+                    <div class="file-input-wrapper">
+                        <button class="file-input-button" id="btn7" onclick="document.getElementById('upload7').click()">Choose Image</button>
+                        <input type="file" id="upload7" class="file-input" accept="image/*" onchange="handleImageUpload(event, 7)">
+                    </div>
+                    <img class="upload-preview" id="preview7" alt="Preview 7">
+                </div>
+                <div class="image-upload">
+                    <label class="upload-label">Picture 8</label>
+                    <div class="file-input-wrapper">
+                        <button class="file-input-button" id="btn8" onclick="document.getElementById('upload8').click()">Choose Image</button>
+                        <input type="file" id="upload8" class="file-input" accept="image/*" onchange="handleImageUpload(event, 8)">
+                    </div>
+                    <img class="upload-preview" id="preview8" alt="Preview 8">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isSpinning = false;
+        let currentRotation = 0;
+
+        function spinWheel() {
+            if (isSpinning) return;
+            
+            isSpinning = true;
+            document.getElementById('spinBtn').disabled = true;
+            document.getElementById('winnerText').style.display = 'none';
+            document.getElementById('resultDisplay').classList.remove('active');
+            
+            const wheel = document.getElementById('wheel');
+            const spins = 5 + Math.random() * 5; // 5-10 rotations
+            const finalAngle = Math.random() * 360;
+            const totalRotation = currentRotation + (spins * 360) + finalAngle;
+            
+            wheel.style.transform = `rotate(${totalRotation}deg)`;
+            currentRotation = totalRotation;
+            
+            setTimeout(() => {
+                isSpinning = false;
+                document.getElementById('spinBtn').disabled = false;
+                
+                // Calculate selected segment
+                // The pointer is at the top, segments are 45 degrees each
+                // Segment 1 starts at top (0 degrees)
+                const normalizedAngle = (360 - (totalRotation % 360) + 360) % 360;
+                const segmentNumber = Math.floor((normalizedAngle + 22.5) / 45) + 1;
+                const correctedSegment = segmentNumber > 8 ? 1 : segmentNumber;
+                
+                // Show winner text
+                const winnerText = document.getElementById('winnerText');
+                winnerText.textContent = `Picture ${correctedSegment}! 🎉`;
+                winnerText.style.display = 'block';
+                
+                // Display the selected picture
+                setTimeout(() => {
+                    winnerText.style.display = 'none';
+                    showSelectedPicture(correctedSegment);
+                }, 1500);
+            }, 4000);
+        }
+
+        function showSelectedPicture(pictureNumber) {
+            const selectedImage = document.getElementById(`img${pictureNumber}`);
+            const resultImage = document.getElementById('resultImage');
+            const resultLabel = document.getElementById('resultLabel');
+            const resultDisplay = document.getElementById('resultDisplay');
+            
+            // Copy the selected image to the result display
+            resultImage.src = selectedImage.src;
+            resultLabel.textContent = `Picture ${pictureNumber}`;
+            
+            // Show the result display
+            resultDisplay.classList.add('active');
+            
+            // Scroll to the result
+            resultDisplay.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function closePictureDisplay() {
+            document.getElementById('resultDisplay').classList.remove('active');
+            // Scroll back to the wheel
+            document.querySelector('.wheel-container').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function handleImageUpload(event, imageNumber) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    try {
+                        const imageData = e.target.result;
+                        
+                        // Update the wheel image
+                        const wheelImage = document.getElementById(`img${imageNumber}`);
+                        if (wheelImage) {
+                            wheelImage.src = imageData;
+                        }
+                        
+                        // Update the preview image
+                        const previewImage = document.getElementById(`preview${imageNumber}`);
+                        if (previewImage) {
+                            previewImage.src = imageData;
+                            previewImage.classList.add('active');
+                        }
+                        
+                        // Update button text and style
+                        const button = document.getElementById(`btn${imageNumber}`);
+                        if (button) {
+                            button.textContent = '✓ Image Loaded';
+                            button.classList.add('loaded');
+                        }
+                    } catch (error) {
+                        console.error('Error updating image:', error);
+                        alert(`Error loading image ${imageNumber}. Please try again.`);
+                    }
+                };
+                
+                reader.onerror = function() {
+                    alert(`Error loading image ${imageNumber}. Please try a different image.`);
+                };
+                
+                reader.readAsDataURL(file);
+            } else {
+                alert('Please select a valid image file (JPG, PNG, GIF, etc.)');
+            }
+        }
+
+        // Keyboard support
+        document.addEventListener('keydown', function(event) {
+            if (event.code === 'Space' && !isSpinning) {
+                event.preventDefault();
+                spinWheel();
+            }
+        });
+
+        // Test image upload functionality on load
+        console.log('Spinner game loaded. Upload buttons ready.');
+    </script>
+</body>
+</html>

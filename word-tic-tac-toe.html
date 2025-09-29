@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher's Word Tic-Tac-Toe</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 30px;
+            padding: 35px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #5f27cd;
+            margin-bottom: 25px;
+            font-size: 32px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Teacher Setup Section */
+        .setup-section {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            padding: 25px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+        }
+
+        .setup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .setup-title {
+            font-size: 24px;
+            color: #2d3436;
+            font-weight: bold;
+        }
+
+        .quick-fill-btn {
+            padding: 8px 20px;
+            background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .quick-fill-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(108, 92, 231, 0.3);
+        }
+
+        .word-input-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .word-input-box {
+            background: white;
+            padding: 12px;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .word-input-label {
+            font-size: 12px;
+            color: #636e72;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .word-input {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #dfe6e9;
+            border-radius: 8px;
+            font-size: 16px;
+            text-transform: uppercase;
+            transition: all 0.3s;
+        }
+
+        .word-input:focus {
+            outline: none;
+            border-color: #6c5ce7;
+            background: #f0f3ff;
+        }
+
+        .hint-input {
+            width: 100%;
+            padding: 6px;
+            margin-top: 5px;
+            border: 1px solid #dfe6e9;
+            border-radius: 6px;
+            font-size: 13px;
+            font-style: italic;
+        }
+
+        .start-game-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .start-game-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 184, 148, 0.3);
+        }
+
+        .start-game-btn:disabled {
+            background: #b2bec3;
+            cursor: not-allowed;
+        }
+
+        /* Game Section */
+        .game-section {
+            display: none;
+        }
+
+        .game-section.active {
+            display: block;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .scores {
+            display: flex;
+            gap: 15px;
+        }
+
+        .score {
+            padding: 10px 20px;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .score-x {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        }
+
+        .score-o {
+            background: linear-gradient(135deg, #4834d4 0%, #686de0 100%);
+        }
+
+        .turn-indicator {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            color: white;
+            border-radius: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .new-game-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .new-game-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        .game-board-container {
+            display: flex;
+            gap: 40px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 120px);
+            grid-template-rows: repeat(3, 120px);
+            gap: 12px;
+            background: linear-gradient(135deg, #dfe6e9 0%, #b2bec3 100%);
+            padding: 12px;
+            border-radius: 20px;
+        }
+
+        .cell {
+            background: white;
+            border: 3px solid transparent;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            font-weight: bold;
+        }
+
+        .cell:hover:not(.claimed) {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            border-color: #f39c12;
+        }
+
+        .cell.active {
+            border-color: #00b894;
+            background: linear-gradient(135deg, #d1f2eb 0%, #a9dfbf 100%);
+            animation: glow 1s infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 10px #00b894; }
+            50% { box-shadow: 0 0 20px #00b894, 0 0 30px #00b894; }
+        }
+
+        .cell-number {
+            position: absolute;
+            top: 5px;
+            left: 8px;
+            font-size: 12px;
+            color: #95a5a6;
+        }
+
+        .cell-word {
+            font-size: 16px;
+            color: #2c3e50;
+            margin: 5px 0;
+        }
+
+        .cell-mark {
+            font-size: 50px;
+            line-height: 1;
+        }
+
+        .cell.claimed {
+            cursor: not-allowed;
+        }
+
+        .cell.claimed.x {
+            background: linear-gradient(135deg, #ffcccc 0%, #ffaaaa 100%);
+        }
+
+        .cell.claimed.x .cell-mark {
+            color: #ff6b6b;
+            animation: popIn 0.5s;
+        }
+
+        .cell.claimed.o {
+            background: linear-gradient(135deg, #ccccff 0%, #aaaaff 100%);
+        }
+
+        .cell.claimed.o .cell-mark {
+            color: #4834d4;
+            animation: popIn 0.5s;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0) rotate(0deg); }
+            50% { transform: scale(1.2) rotate(180deg); }
+            100% { transform: scale(1) rotate(360deg); }
+        }
+
+        .guess-panel {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 25px;
+            border-radius: 20px;
+            min-width: 320px;
+        }
+
+        .current-word-section {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .word-display {
+            font-size: 32px;
+            letter-spacing: 8px;
+            color: #2c3e50;
+            margin: 15px 0;
+            min-height: 45px;
+            font-weight: bold;
+        }
+
+        .hint-display {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        .input-section {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .letter-input-field {
+            font-size: 24px;
+            padding: 10px;
+            width: 60px;
+            text-align: center;
+            border: 3px solid #4834d4;
+            border-radius: 10px;
+            text-transform: uppercase;
+            margin-right: 10px;
+        }
+
+        .guess-button {
+            padding: 10px 30px;
+            font-size: 20px;
+            background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .guess-button:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 184, 148, 0.3);
+        }
+
+        .guess-button:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .guessed-section {
+            text-align: center;
+        }
+
+        .guessed-title {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+        }
+
+        .guessed-letters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .guessed-letter {
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .guessed-letter.correct {
+            background: #00b894;
+        }
+
+        .guessed-letter.wrong {
+            background: #e74c3c;
+        }
+
+        .message {
+            text-align: center;
+            font-size: 20px;
+            margin-top: 20px;
+            min-height: 30px;
+            font-weight: bold;
+        }
+
+        .message.success {
+            color: #00b894;
+        }
+
+        .message.error {
+            color: #e74c3c;
+        }
+
+        .message.info {
+            color: #4834d4;
+        }
+
+        .win-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .win-modal {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            animation: bounceIn 0.5s;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .win-title {
+            font-size: 42px;
+            margin-bottom: 20px;
+        }
+
+        .play-again-button {
+            padding: 15px 40px;
+            font-size: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+
+        .play-again-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>👩‍🏫 Teacher's Word Tic-Tac-Toe 👨‍🏫</h1>
+        
+        <!-- Teacher Setup Section -->
+        <div class="setup-section" id="setupSection">
+            <div class="setup-header">
+                <h2 class="setup-title">📝 Enter Words for Each Square</h2>
+                <button class="quick-fill-btn" onclick="quickFill()">Quick Fill Sample Words</button>
+            </div>
+            
+            <div class="word-input-grid">
+                <div class="word-input-box">
+                    <div class="word-input-label">Square 1</div>
+                    <input type="text" class="word-input" id="word0" placeholder="Enter word" maxlength="12">
+                    <input type="text" class="hint-input" id="hint0" placeholder="Hint (optional)">
+                </div>
+                <div class="word-input-box">
+                    <div class="word-input-label">Square 2</div>
+                    <input type="text" class="word-input" id="word1" placeholder="Enter word" maxlength="12">
+                    <input type="text" class="hint-input" id="hint1" placeholder="Hint (optional)">
+                </div>
+                <div class="word-input-box">
+                    <div class="word-input-label">Square 3</div>
+                    <input type="text" class="word-input" id="word2" placeholder="Enter word" maxlength="12">
+                    <input type="text" class="hint-input" id="hint2" placeholder="Hint (optional)">
+                </div>
+                <div class="word-input-box">
+                    <div class="word-input-label">Square 4</div>
+                    <input type="text" class="word-input" id="word3" placeholder="Enter word" maxlength="12">
+                    <input type="text" class="hint-input" id="hint3" placeholder="Hint (optional)">
+                </div>
+                <div class="word-input-box">
+                    <div class="word-input-label">Square 5</div>
+                    <input type="text" class="word-input" id="word4" placeholder="Enter word" maxlength="12">
+                    <input type="text" class="hint-input" id="hint4" placeholder="Hint (optional)">
+                </div>
+                <div class="word-input-box">
+                    <div class="word-input-label">Square 6</div>
+                    <input type="text" class="word-input" id="word5" placeholder="Enter word" maxlength="12">
+                    <input type="text" class="hint-input" id="hint5" placeholder="Hint (optional)">
+                </div>
+                <div class="word-input-box">
+                    <div class="word-input-label">Square 7</div>
+                    <input type="text" class="word-input" id="word6" placeholder="Enter word" maxlength="12">
+                    <input type="text" class="hint-input" id="hint6" placeholder="Hint (optional)">
+                </div>
+                <div class="word-input-box">
+                    <div class="word-input-label">Square 8</div>
+                    <input type="text" class="word-input" id="word7" placeholder="Enter word" maxlength="12">
+                    <input type="text" class="hint-input" id="hint7" placeholder="Hint (optional)">
+                </div>
+                <div class="word-input-box">
+                    <div class="word-input-label">Square 9</div>
+                    <input type="text" class="word-input" id="word8" placeholder="Enter word" maxlength="12">
+                    <input type="text" class="hint-input" id="hint8" placeholder="Hint (optional)">
+                </div>
+            </div>
+            
+            <button class="start-game-btn" id="startGameBtn" onclick="startGame()">Start Game!</button>
+        </div>
+        
+        <!-- Game Section -->
+        <div class="game-section" id="gameSection">
+            <div class="game-header">
+                <div class="scores">
+                    <div class="score score-x">X: <span id="scoreX">0</span></div>
+                    <div class="score score-o">O: <span id="scoreO">0</span></div>
+                </div>
+                <div class="turn-indicator" id="turnIndicator">Player X's Turn</div>
+                <button class="new-game-btn" onclick="newSetup()">New Setup</button>
+            </div>
+            
+            <div class="game-board-container">
+                <div class="board" id="board"></div>
+                
+                <div class="guess-panel">
+                    <div class="current-word-section">
+                        <h3>Current Word:</h3>
+                        <div class="word-display" id="wordDisplay">Select a square</div>
+                        <div class="hint-display" id="hintDisplay"></div>
+                    </div>
+                    
+                    <div class="input-section">
+                        <input type="text" class="letter-input-field" id="letterInput" maxlength="1" placeholder="?">
+                        <button class="guess-button" id="guessBtn" onclick="makeGuess()">Guess!</button>
+                    </div>
+                    
+                    <div class="guessed-section">
+                        <div class="guessed-title">Guessed Letters:</div>
+                        <div class="guessed-letters" id="guessedLetters"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message" id="message"></div>
+        </div>
+        
+        <!-- Win Overlay -->
+        <div class="win-overlay hidden" id="winOverlay">
+            <div class="win-modal">
+                <div class="win-title" id="winTitle">🎉 Game Over! 🎉</div>
+                <button class="play-again-button" onclick="playAgain()">Play Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let words = [];
+        let hints = [];
+        let currentPlayer = 'X';
+        let board = [];
+        let selectedCell = null;
+        let currentWord = '';
+        let currentHint = '';
+        let guessedLetters = [];
+        let revealedPositions = [];
+        let scores = {X: 0, O: 0};
+        let gameActive = false;
+
+        // Quick fill sample words for testing
+        function quickFill() {
+            const sampleWords = [
+                {word: 'MATH', hint: 'Subject with numbers'},
+                {word: 'READ', hint: 'What you do with books'},
+                {word: 'SPELL', hint: 'Put letters together'},
+                {word: 'WRITE', hint: 'Use a pencil to...'},
+                {word: 'THINK', hint: 'Use your brain'},
+                {word: 'LEARN', hint: 'Get new knowledge'},
+                {word: 'STUDY', hint: 'Prepare for a test'},
+                {word: 'TEACH', hint: 'What teachers do'},
+                {word: 'CLASS', hint: 'Group of students'}
+            ];
+            
+            for (let i = 0; i < 9; i++) {
+                document.getElementById(`word${i}`).value = sampleWords[i].word;
+                document.getElementById(`hint${i}`).value = sampleWords[i].hint;
+            }
+        }
+
+        function validateInputs() {
+            let valid = true;
+            for (let i = 0; i < 9; i++) {
+                const word = document.getElementById(`word${i}`).value.trim();
+                if (!word) {
+                    valid = false;
+                    break;
+                }
+            }
+            document.getElementById('startGameBtn').disabled = !valid;
+            return valid;
+        }
+
+        // Check inputs as teacher types
+        document.addEventListener('DOMContentLoaded', () => {
+            for (let i = 0; i < 9; i++) {
+                document.getElementById(`word${i}`).addEventListener('input', validateInputs);
+            }
+            
+            document.getElementById('letterInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    makeGuess();
+                }
+            });
+        });
+
+        function startGame() {
+            // Collect all words and hints
+            words = [];
+            hints = [];
+            for (let i = 0; i < 9; i++) {
+                words.push(document.getElementById(`word${i}`).value.toUpperCase().trim());
+                hints.push(document.getElementById(`hint${i}`).value.trim() || 'No hint provided');
+            }
+            
+            // Initialize game
+            board = Array(9).fill(null);
+            gameActive = true;
+            currentPlayer = 'X';
+            selectedCell = null;
+            
+            // Switch views
+            document.getElementById('setupSection').style.display = 'none';
+            document.getElementById('gameSection').classList.add('active');
+            
+            // Create board
+            createBoard();
+            updateDisplay();
+        }
+
+        function createBoard() {
+            const boardElement = document.getElementById('board');
+            boardElement.innerHTML = '';
+            
+            for (let i = 0; i < 9; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.dataset.index = i;
+                cell.onclick = () => selectCell(i);
+                
+                const numberLabel = document.createElement('div');
+                numberLabel.className = 'cell-number';
+                numberLabel.textContent = i + 1;
+                
+                const wordLabel = document.createElement('div');
+                wordLabel.className = 'cell-word';
+                wordLabel.textContent = '???';
+                
+                const markLabel = document.createElement('div');
+                markLabel.className = 'cell-mark';
+                
+                cell.appendChild(numberLabel);
+                cell.appendChild(wordLabel);
+                cell.appendChild(markLabel);
+                
+                boardElement.appendChild(cell);
+            }
+        }
+
+        function selectCell(index) {
+            if (!gameActive || board[index]) return;
+            
+            // Remove active class from all cells
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.classList.remove('active');
+            });
+            
+            // Set new active cell
+            selectedCell = index;
+            const cell = document.querySelector(`.cell[data-index="${index}"]`);
+            cell.classList.add('active');
+            
+            // Set up the word to guess
+            currentWord = words[index];
+            currentHint = hints[index];
+            guessedLetters = [];
+            revealedPositions = [];
+            
+            // Update displays
+            updateWordDisplay();
+            document.getElementById('hintDisplay').textContent = `Hint: ${currentHint}`;
+            document.getElementById('guessedLetters').innerHTML = '';
+            document.getElementById('letterInput').value = '';
+            document.getElementById('letterInput').focus();
+            document.getElementById('guessBtn').disabled = false;
+            
+            showMessage(`Guess the word in square ${index + 1}!`, 'info');
+        }
+
+        function updateWordDisplay() {
+            let display = '';
+            for (let i = 0; i < currentWord.length; i++) {
+                if (revealedPositions.includes(i)) {
+                    display += currentWord[i] + ' ';
+                } else {
+                    display += '_ ';
+                }
+            }
+            document.getElementById('wordDisplay').textContent = display.trim();
+        }
+
+        function makeGuess() {
+            if (selectedCell === null) {
+                showMessage('Please select a square first!', 'error');
+                return;
+            }
+            
+            const input = document.getElementById('letterInput');
+            const letter = input.value.toUpperCase();
+            
+            if (!letter) {
+                showMessage('Please enter a letter!', 'error');
+                return;
+            }
+            
+            if (guessedLetters.includes(letter)) {
+                showMessage('Already guessed that letter!', 'error');
+                input.value = '';
+                return;
+            }
+            
+            guessedLetters.push(letter);
+            input.value = '';
+            
+            // Check if letter is in word
+            let found = false;
+            for (let i = 0; i < currentWord.length; i++) {
+                if (currentWord[i] === letter) {
+                    revealedPositions.push(i);
+                    found = true;
+                }
+            }
+            
+            // Update guessed letters display
+            const guessedDiv = document.getElementById('guessedLetters');
+            const letterDiv = document.createElement('div');
+            letterDiv.className = `guessed-letter ${found ? 'correct' : 'wrong'}`;
+            letterDiv.textContent = letter;
+            guessedDiv.appendChild(letterDiv);
+            
+            if (found) {
+                updateWordDisplay();
+                
+                // Check if word is complete
+                if (revealedPositions.length === currentWord.length) {
+                    claimCell();
+                }
+            } else {
+                showMessage('Wrong letter! Turn switches.', 'error');
+                setTimeout(() => {
+                    switchTurn();
+                    deselectCell();
+                }, 1500);
+            }
+        }
+
+        function claimCell() {
+            if (selectedCell === null) return;
+            
+            const cell = document.querySelector(`.cell[data-index="${selectedCell}"]`);
+            board[selectedCell] = currentPlayer;
+            
+            // Update cell display
+            cell.classList.remove('active');
+            cell.classList.add('claimed', currentPlayer.toLowerCase());
+            cell.querySelector('.cell-word').textContent = currentWord;
+            cell.querySelector('.cell-mark').textContent = currentPlayer;
+            
+            showMessage(`${currentPlayer} got it! The word was: ${currentWord}`, 'success');
+            
+            // Check for win
+            if (checkWin()) {
+                endGame(currentPlayer);
+            } else if (board.every(cell => cell !== null)) {
+                endGame('tie');
+            } else {
+                setTimeout(() => {
+                    switchTurn();
+                    deselectCell();
+                }, 2000);
+            }
+        }
+
+        function deselectCell() {
+            selectedCell = null;
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.classList.remove('active');
+            });
+            document.getElementById('wordDisplay').textContent = 'Select a square';
+            document.getElementById('hintDisplay').textContent = '';
+            document.getElementById('guessedLetters').innerHTML = '';
+            document.getElementById('guessBtn').disabled = true;
+            showMessage('', '');
+        }
+
+        function switchTurn() {
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            document.getElementById('turnIndicator').textContent = `Player ${currentPlayer}'s Turn`;
+        }
+
+        function checkWin() {
+            const winPatterns = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
+                [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
+                [0, 4, 8], [2, 4, 6] // Diagonals
+            ];
+            
+            return winPatterns.some(pattern => {
+                return pattern.every(index => board[index] === currentPlayer);
+            });
+        }
+
+        function endGame(winner) {
+            gameActive = false;
+            
+            if (winner === 'X' || winner === 'O') {
+                scores[winner]++;
+                document.getElementById(`score${winner}`).textContent = scores[winner];
+                document.getElementById('winTitle').textContent = `🎉 Player ${winner} Wins! 🎉`;
+            } else {
+                document.getElementById('winTitle').textContent = "🤝 It's a Tie! 🤝";
+            }
+            
+            setTimeout(() => {
+                document.getElementById('winOverlay').classList.remove('hidden');
+            }, 500);
+        }
+
+        function showMessage(msg, type) {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = msg;
+            messageEl.className = `message ${type}`;
+        }
+
+        function updateDisplay() {
+            document.getElementById('turnIndicator').textContent = `Player ${currentPlayer}'s Turn`;
+            document.getElementById('scoreX').textContent = scores.X;
+            document.getElementById('scoreO').textContent = scores.O;
+        }
+
+        function playAgain() {
+            // Reset game with same words
+            board = Array(9).fill(null);
+            gameActive = true;
+            currentPlayer = 'X';
+            selectedCell = null;
+            document.getElementById('winOverlay').classList.add('hidden');
+            createBoard();
+            updateDisplay();
+            deselectCell();
+        }
+
+        function newSetup() {
+            // Go back to setup screen
+            document.getElementById('gameSection').classList.remove('active');
+            document.getElementById('setupSection').style.display = 'block';
+            document.getElementById('winOverlay').classList.add('hidden');
+            
+            // Clear inputs for fresh start
+            for (let i = 0; i < 9; i++) {
+                document.getElementById(`word${i}`).value = '';
+                document.getElementById(`hint${i}`).value = '';
+            }
+            
+            // Reset scores for new session
+            scores = {X: 0, O: 0};
+        }
+    </script>
+</body>
+</html>
